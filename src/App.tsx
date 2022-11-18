@@ -1,26 +1,60 @@
-import React from 'react';
-import logo from './logo.svg';
-import './App.css';
+import React, { useEffect, useState } from "react";
+import { Success } from "./components/Success";
+import { Users } from "./components/Users";
+// import './index.scss';
 
-function App() {
-  return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.tsx</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
-  );
+export default function App() {
+    //список пользователей: https://reqres.in/api/users
+    const [users, setUsers] = useState([])
+    const [isLoading, setLoading] = useState(true)
+    const [searchValue, setSerchValue] = useState('')
+    const [invites, setInvinites] = useState<string[]>([])
+    const [success, setSuccess] = useState(false)
+
+    
+    useEffect(()=>{
+        fetch('https://reqres.in/api/users')
+                .then((res) => res.json())
+                .then((json) => {
+                    setUsers(json.data)   
+                }).catch(err => {
+                    console.warn(err)})
+                .finally(()=>setLoading(false))      
+    },[])
+
+    const onChangeSearchValue=(event: React.FormEvent<HTMLInputElement>)=>{
+        setSerchValue(event.currentTarget.value)
+    }
+
+    const onClickInvite = (id: string) => {
+        if (invites.includes(id)) {
+            setInvinites(prev=>prev.filter(_id=> _id !== id))
+        } else {
+            setInvinites(prev => [...prev, id])
+        }
+    }
+
+    const onClickSendInvites = () => {
+        setSuccess(true)
+    }
+
+    return (
+        <div className="App">
+            {
+                success ? ( 
+                <Success count={invites.length} /> 
+                ) : (
+                <Users
+                    onChangeSearchValue = {onChangeSearchValue} 
+                    searchValue={searchValue} 
+                    items={users} 
+                    isLoading={isLoading} 
+                    invites={invites}
+                    onClickInvite={onClickInvite}    
+                    onClickSendInvites={onClickSendInvites}      
+                />
+                )
+            }
+        </div>
+    )
 }
-
-export default App;
